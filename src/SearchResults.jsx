@@ -110,6 +110,7 @@ export default function SearchResults({query, setQuery}) {
     })
     .catch(err => {
       setError(err.message)
+      setCards(null)
     })
   }
 
@@ -175,7 +176,7 @@ export default function SearchResults({query, setQuery}) {
           </Typography>
         </Container>
 
-        <Container sx={{ py: 8 }} maxWidth="lg">
+        <Container maxWidth="lg">
           {/* End hero unit */}
           <Grid container spacing={4}>
             {
