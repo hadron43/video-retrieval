@@ -3,12 +3,10 @@ import AppBar from '@mui/material/AppBar';
 import Button from '@mui/material/Button';
 import CameraIcon from '@mui/icons-material/PhotoCamera';
 import Card from '@mui/material/Card';
-import CardActions from '@mui/material/CardActions';
 import CardContent from '@mui/material/CardContent';
 import CardMedia from '@mui/material/CardMedia';
 import CssBaseline from '@mui/material/CssBaseline';
 import Grid from '@mui/material/Grid';
-import Stack from '@mui/material/Stack';
 import Box from '@mui/material/Box';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
@@ -16,13 +14,14 @@ import Container from '@mui/material/Container';
 import { SearchBar } from './App';
 import { Link } from 'react-router-dom';
 import { Chip } from '@mui/material';
+import CircularProgress from '@mui/material/CircularProgress';
 
 function Copyright() {
   return (
     <Typography variant="body2" color="text.secondary" align="center">
       {'Copyright © '}
       <Link color="inherit" href="https://mui.com/">
-        Your Website
+        Varun Khurana, Harsh Kumar
       </Link>{' '}
       {new Date().getFullYear()}
       {'.'}
@@ -32,6 +31,8 @@ function Copyright() {
 
 function ResultCard({ details }) {
   const short_text = (text, words) => (text.split(" ", words).join(" "))
+  const count_words = (text) => (text.split(" ").length)
+  const [full, setFull] = React.useState(false)
 
   return (
     <>
@@ -50,7 +51,15 @@ function ResultCard({ details }) {
             {new Date(details['snippet']['publishedAt']).toLocaleString()}
         </Typography>
         <Typography variant="subtitle1" color="text.secondary" component="div">
-          {short_text(details['summary'], 50)}
+          {(full | count_words(details['summary']) <= 50) ? details['summary'] : short_text(details['summary'], 50)+'...'}
+          
+          {
+            (count_words(details['summary']) > 50) ?
+            <Chip label={`View ${full ? 'Less' : 'More'}`} sx={{mx: 1}} onClick={() => setFull(!full)} />
+            :
+            <></>
+          }
+          
         </Typography>
       </CardContent>
       <Box sx={{ display: 'flex', alignItems: 'center', pl: 1, pb: 1 }}>
@@ -106,6 +115,7 @@ export default function SearchResults({query, setQuery}) {
 
   React.useEffect(() => {
     fetch_results(query, setCards, setTime)
+  // eslint-disable-next-line
   }, [])
 
   return (
@@ -171,12 +181,17 @@ export default function SearchResults({query, setQuery}) {
             {
               cards ?
                 cards.map((card) => (
-                  <Grid item key={card} xs={12}>
+                  <Grid item key={card['id']} xs={12}>
                     <ResultCard details={card} />
                   </Grid>
                 ))
-                :
-                <></>
+              :
+              cards === undefined?
+                <Box sx={{ display: 'flex', m: 'auto' }}>
+                  <CircularProgress />
+                </Box>
+              :
+              <></>
             }
           </Grid>
         </Container>
@@ -184,16 +199,16 @@ export default function SearchResults({query, setQuery}) {
       {/* Footer */}
       <Box sx={{ bgcolor: 'background.paper', p: 6 }} component="footer">
         <Typography variant="h6" align="center" gutterBottom>
-          Footer
+          VidRetrieve
         </Typography>
-        <Typography
+        {/* <Typography
           variant="subtitle1"
           align="center"
           color="text.secondary"
           component="p"
         >
-          Something here to give the footer a purpose!
-        </Typography>
+          Retrieve videos from video descriptions with ease.
+        </Typography> */}
         <Copyright />
       </Box>
       {/* End footer */}
