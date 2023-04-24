@@ -1,6 +1,6 @@
 import './App.css';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
-import { TextField, InputAdornment, Button, useStepContext } from '@mui/material';
+import { TextField, InputAdornment, Button, useStepContext, Container } from '@mui/material';
 
 import SearchIcon from "@mui/icons-material/Search";
 import { useState } from 'react';
@@ -21,7 +21,7 @@ export function SearchBar({query, setQuery}) {
       type="search"
       value={query}
       onChange={handleChange}
-      sx={{ width: 600 }}
+      sx={{ width: '90%', marginX: 'auto' }}
       InputProps={{
         endAdornment: (
           <InputAdornment position="end">
@@ -36,6 +36,7 @@ export function SearchBar({query, setQuery}) {
 
 function Home({query, setQuery}) {
   return (
+    <Container>
     <div className="App">
       <header className="App-header">
         <img src='vidretrieve.png' alt="logo" />
@@ -45,6 +46,7 @@ function Home({query, setQuery}) {
         </Link>
       </header>
     </div>
+    </Container>
   )
 }
 

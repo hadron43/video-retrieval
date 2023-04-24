@@ -15,7 +15,7 @@ import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 import { SearchBar } from './App';
 import { Link } from 'react-router-dom';
-import { IconButton } from '@mui/material';
+import { Chip } from '@mui/material';
 
 function Copyright() {
   return (
@@ -30,37 +30,84 @@ function Copyright() {
   );
 }
 
-const cards = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+function ResultCard({ details }) {
+  const short_text = (text, words) => (text.split(" ", words).join(" "))
 
-function ResultCard() {
   return (
     <>
-    <Card sx={{ display: 'flex' }}>
+    <Card sx={{ display: 'flex', ':hover': {boxShadow: 100,} }}>
     <Box sx={{ display: 'flex', flexDirection: 'column' }}>
       <CardContent sx={{ flex: '1 0 auto' }}>
+        <a href={`https://www.youtube.com/watch?v=${details['id']}`}>
         <Typography component="div" variant="h5">
-          Heading
+          {details['snippet']['title']}
+        </Typography>
+        </a>
+        <Typography variant="subtitle2" color="text.secondary" component="div" fontStyle={'italic'} sx={{my: 2}}>
+            <a href={`https://youtube.com/channel/${details['snippet']['channelId']}`}>
+            <Chip label={details['snippet']['channelTitle']} sx={{mr: 2}} onClick={() => {}} />
+            </a>
+            {new Date(details['snippet']['publishedAt']).toLocaleString()}
         </Typography>
         <Typography variant="subtitle1" color="text.secondary" component="div">
-          This is a media card. You can use this section to describe the content.
+          {short_text(details['summary'], 50)}
         </Typography>
       </CardContent>
       <Box sx={{ display: 'flex', alignItems: 'center', pl: 1, pb: 1 }}>
         
       </Box>
     </Box>
+    <a href={`https://www.youtube.com/watch?v=${details['id']}`}>
     <CardMedia
       component="img"
-      sx={{ width: '40%' }}
-      image="http://via.placeholder.com/640x360"
+      sx={{ width: '22vw' }}
+      image={details['snippet']['thumbnails']['high']['url']}
       alt="Live from space album cover"
     />
+    </a>
     </Card>
     </>
   )
 }
 
 export default function SearchResults({query, setQuery}) {
+  const [cards, setCards] = React.useState(undefined)
+  const [time, setTime] = React.useState(undefined)
+  const [error, setError] = React.useState('') 
+
+  const fetch_results = (query, setCards, setTime) => {
+    setError('')
+    setCards(undefined)
+    setTime(undefined)
+
+    fetch('http://localhost:8000/search', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*'
+      },
+      body: JSON.stringify({
+        'text': query
+      })
+    })
+    .then(resp => {
+      if(!resp.ok)
+        throw Error('Error while fetching results!')
+      return resp.json()
+    })
+    .then(resp => {
+      setCards(resp.results)
+      setTime(resp.time)
+    })
+    .catch(err => {
+      setError(err.message)
+    })
+  }
+
+  React.useEffect(() => {
+    fetch_results(query, setCards, setTime)
+  }, [])
+
   return (
     <>
       <CssBaseline />
@@ -83,19 +130,54 @@ export default function SearchResults({query, setQuery}) {
             pb: 6,
           }}
         >
-          <Container maxWidth="sm">
-
-            <SearchBar query={query} setQuery={setQuery} />
+          <Container>
+            <Grid container>
+              <Grid item xs={10} style={{ display: 'flex' }}>
+                <SearchBar query={query} setQuery={setQuery} />
+              </Grid>
+              <Grid item xs={2} style={{ display: 'flex' }}>
+                <Button variant="outlined" size='large'
+                  style={{ display: 'flex', minWidth: '90%', height: '100%', margin: 'auto' }}
+                  onClick={() => fetch_results(query, setCards, setTime)}>
+                  Search
+                </Button>
+              </Grid>
+            </Grid>
           </Container>
+
+          {
+            (time) ?
+              <div style={{ textAlign: 'center', marginTop: '1%' }}>
+                This search took
+                <Typography color={'green'} align='center' style={{ margin: '5px', display: 'inline' }}>
+                  {parseFloat(time.toFixed(6))}
+                </Typography>
+                seconds!
+              </div>
+              :
+              <></>
+          }
         </Box>
-        <Container sx={{ py: 8 }} maxWidth="md">
+
+        <Container>
+          <Typography color={'red'} align='center' style={{margin: '2%'}}>
+          {error}
+          </Typography>
+        </Container>
+
+        <Container sx={{ py: 8 }} maxWidth="lg">
           {/* End hero unit */}
           <Grid container spacing={4}>
-            {cards.map((card) => (
-              <Grid item key={card} xs={12}>
-                <ResultCard />
-              </Grid>
-            ))}
+            {
+              cards ?
+                cards.map((card) => (
+                  <Grid item key={card} xs={12}>
+                    <ResultCard details={card} />
+                  </Grid>
+                ))
+                :
+                <></>
+            }
           </Grid>
         </Container>
       </main>
