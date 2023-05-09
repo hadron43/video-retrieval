@@ -89,6 +89,11 @@ export default function SearchResults({query, setQuery}) {
     setCards(undefined)
     setTime(undefined)
 
+    if (!query) {
+      setError("Query string can't be empty!")
+      return
+    }
+
     fetch('http://localhost:8000/search', {
       method: 'POST',
       headers: {
@@ -105,7 +110,13 @@ export default function SearchResults({query, setQuery}) {
       return resp.json()
     })
     .then(resp => {
-      setCards(resp.results)
+      let results = []
+      for (let i in resp.results) {
+        if(resp.scores[i] >= -10)
+          results.push(resp.results[i])
+      } 
+
+      setCards(results)
       setTime(resp.time)
     })
     .catch(err => {
@@ -180,17 +191,22 @@ export default function SearchResults({query, setQuery}) {
           {/* End hero unit */}
           <Grid container spacing={4}>
             {
-              cards ?
+              (cards && cards.length > 0) ?
                 cards.map((card) => (
                   <Grid item key={card['id']} xs={12}>
                     <ResultCard details={card} />
                   </Grid>
                 ))
               :
-              cards === undefined?
+              (cards === undefined && !error)?
                 <Box sx={{ display: 'flex', m: 'auto' }}>
                   <CircularProgress />
                 </Box>
+              :
+              (!error) ?
+              <Typography color={'red'} align='center' style={{margin: '2%', width: '100%'}}>
+              No relevant results found. Try again?
+              </Typography>
               :
               <></>
             }
